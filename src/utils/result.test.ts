@@ -1,0 +1,1 @@
+import{describe,expect,it}from'vitest';import{messageLimit,truncateMessage}from'./result';describe('result utilities',()=>{it('limits a message to 30 characters',()=>expect(truncateMessage('a'.repeat(40))).toHaveLength(messageLimit))});
