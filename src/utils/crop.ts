@@ -1,0 +1,3 @@
+import type {PhotoTransform} from '../types/photo';
+export const defaultTransform:PhotoTransform={scale:1,offsetX:0,offsetY:0};
+export function cropRect(sourceWidth:number,sourceHeight:number,targetWidth:number,targetHeight:number,transform:PhotoTransform=defaultTransform){const cover=Math.max(targetWidth/sourceWidth,targetHeight/sourceHeight)*transform.scale;const width=targetWidth/cover,height=targetHeight/cover;const left=(sourceWidth-width)/2-transform.offsetX/cover;const top=(sourceHeight-height)/2-transform.offsetY/cover;return{left:Math.max(0,Math.min(sourceWidth-width,left)),top:Math.max(0,Math.min(sourceHeight-height,top)),width:Math.min(sourceWidth,width),height:Math.min(sourceHeight,height)}}

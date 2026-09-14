@@ -6,3 +6,5 @@ describe('frameById', () => {
     expect(frameById('black')).toMatchObject({ id: 'black', background: '#202020' });
   });
 });
+
+it('keeps eight frame presets', async () => { const { frames } = await import('./presets'); expect(frames).toHaveLength(8); });

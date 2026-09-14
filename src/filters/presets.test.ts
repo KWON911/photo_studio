@@ -1,0 +1,1 @@
+import{describe,expect,it}from'vitest';import{filters}from'./presets';describe('filters',()=>{it('has six presets',()=>expect(filters.map(x=>x.id)).toEqual(['original','soft','warm','cool','film','mono']))});

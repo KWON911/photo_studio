@@ -1,0 +1,1 @@
+import{describe,expect,it}from'vitest';import{cropRect}from'./crop';describe('cropRect',()=>{it('uses centered cover crop by default',()=>expect(cropRect(1600,900,400,300)).toMatchObject({left:200,top:0,width:1200,height:900}));it('applies photo translation',()=>expect(cropRect(1600,900,400,300,{scale:1,offsetX:100,offsetY:0}).left).toBe(0))});
