@@ -1,0 +1,1 @@
+import type {Frame} from '../types/photo'; export const frames:Frame[]=[{id:'white',name:'화이트',background:'#fff',color:'#181818',gap:26,padding:46},{id:'black',name:'블랙',background:'#202020',color:'#fff',gap:26,padding:46},{id:'cream',name:'크림',background:'#e9dfd1',color:'#302a25',gap:30,padding:52}]; export const frameById=(id:Frame['id'])=>frames.find(x=>x.id===id)??frames[0];

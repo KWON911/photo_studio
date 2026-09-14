@@ -1,0 +1,1 @@
+export type Screen='landing'|'setup'|'capture'|'select'|'edit'|'result'; export type Settings={interval:3|5|10;facingMode:'user'|'environment'}; export type Photo={id:string;blob:Blob;url:string}; export type Frame={id:'white'|'black'|'cream';name:string;background:string;color:string;gap:number;padding:number};
