@@ -1,0 +1,1 @@
+import{describe,expect,it}from'vitest';import{layouts}from'./presets';describe('layouts',()=>{it('contains three valid four-slot layouts',()=>{expect(layouts).toHaveLength(3);layouts.forEach(x=>{expect(x.slots).toHaveLength(4);expect(x.outputWidth).toBeGreaterThanOrEqual(1440);x.slots.forEach(s=>expect(s.x+s.width).toBeLessThanOrEqual(1))})})});
