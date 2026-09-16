@@ -34,6 +34,7 @@ import {
 import "./edit.css";
 import "./layout.css";
 import "./mobile-polish.css";
+import "./portrait-retouch.css";
 import { captureProgress, nextCaptureFeedback } from "./utils/capture-feedback";
 import type { CaptureFeedback } from "./utils/capture-feedback";
 import { CaptureCountdownOverlay } from "./components/CaptureCountdownOverlay";
@@ -237,6 +238,8 @@ function Edit({
   setFrame,
   filter,
   setFilter,
+  portraitRetouch,
+  setPortraitRetouch,
   layout,
   setLayout,
   transforms,
@@ -258,6 +261,8 @@ function Edit({
   setFrame: (v: FrameId) => void;
   filter: FilterId;
   setFilter: (v: FilterId) => void;
+  portraitRetouch: boolean;
+  setPortraitRetouch: (value: boolean) => void;
   layout: LayoutId;
   setLayout: (v: LayoutId) => void;
   transforms: Record<string, PhotoTransform>;
@@ -290,6 +295,7 @@ function Edit({
         frame={frameById(frame)}
         layout={preset}
         filter={filterById(filter)}
+        portraitRetouch={portraitRetouch}
         transforms={transforms}
         active={active}
         onSelect={setActive}
@@ -325,7 +331,16 @@ function Edit({
             onChange={(value) => setTransform(photo.id, value)}
           />
         ) : tab === "filter" ? (
-          <FilterSelector photo={photo} value={filter} onChange={setFilter} />
+          <>
+            <FilterSelector photo={photo} value={filter} onChange={setFilter} portraitRetouch={portraitRetouch} />
+            <section className="portrait-retouch" aria-label="인물 보정">
+              <span>인물 보정</span>
+              <nav>
+                <button aria-pressed={!portraitRetouch} className={!portraitRetouch ? "active" : ""} onClick={() => setPortraitRetouch(false)}>OFF</button>
+                <button aria-pressed={portraitRetouch} className={portraitRetouch ? "active" : ""} onClick={() => setPortraitRetouch(true)}>ON</button>
+              </nav>
+            </section>
+          </>
         ) : tab === "frame" ? (
           <nav className="frames">
             {frames.map((item) => (
@@ -387,6 +402,7 @@ export default function App() {
     [ids, setIds] = useState<string[]>([]),
     [frame, setFrame] = useState<FrameId>("white"),
     [filter, setFilter] = useState<FilterId>("original"),
+    [portraitRetouch, setPortraitRetouch] = useState(false),
     [layout, setLayout] = useState<LayoutId>("classic"),
     [transforms, setTransforms] = useState<Record<string, PhotoTransform>>({}),
     [date, setDate] = useState(true),
@@ -416,6 +432,7 @@ export default function App() {
       typographyById(typography),
       alignment,
       textSize,
+      portraitRetouch,
     );
     if (url) URL.revokeObjectURL(url);
     setBlob(b);
@@ -492,6 +509,8 @@ export default function App() {
         setFrame={setFrame}
         filter={filter}
         setFilter={setFilter}
+        portraitRetouch={portraitRetouch}
+        setPortraitRetouch={setPortraitRetouch}
         layout={layout}
         setLayout={setLayout}
         transforms={transforms}
@@ -538,6 +557,7 @@ export default function App() {
             setTypography(defaultTypographyId);
             setAlignment(defaultTextAlignment);
             setTextSize(defaultTextSize);
+            setPortraitRetouch(false);
             setIds([]);
             setScreen("landing");
           }}

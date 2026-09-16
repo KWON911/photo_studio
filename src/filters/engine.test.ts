@@ -1,4 +1,4 @@
-import{describe,expect,it}from'vitest';import{applyFilterToImageData}from'./engine';import{filterById}from'./presets';
+import{describe,expect,it}from'vitest';import{applyFilterToImageData,applyPortraitRetouchToImageData}from'./engine';import{filterById}from'./presets';
 
 const pixels=(values:number[])=>({data:new Uint8ClampedArray(values),width:values.length/4,height:1} as ImageData);
 
@@ -24,5 +24,13 @@ describe('applyFilterToImageData',()=>{
     expect(image.data[1]).toBeGreaterThan(0);
     expect(image.data[2]).toBeGreaterThan(0);
     expect(image.data[3]).toBe(91);
+  });
+
+  it('brightens a midtone portrait pixel while preserving its alpha',()=>{
+    const image=pixels([120,100,86,137]);
+    applyPortraitRetouchToImageData(image);
+    expect(image.data[0]).toBeGreaterThan(120);
+    expect(image.data[1]).toBeGreaterThan(100);
+    expect(image.data[3]).toBe(137);
   });
 });

@@ -156,4 +156,21 @@ describe('compose footer typography', () => {
     const adjusted=(context.putImageData.mock.calls[0][0] as ImageData).data;
     expect(adjusted[0]).toBeGreaterThan(adjusted[2]);
   });
+
+  it('applies portrait retouch only when enabled for a drawn photo slot', async () => {
+    class TestImage {
+      width=100; height=100; onload:((event:Event)=>void)|null=null;
+      set src(_value:string){this.onload?.(new Event('load'));}
+    }
+    vi.stubGlobal('Image',TestImage);
+
+    await compose(
+      [{id:'photo-1',blob:new Blob(['photo']),url:'blob:photo-1'}],frameById('black'),filterById('original'),{},true,
+      '',new Date(2026,8,15),layoutById('classic'),typographyById('serif'),'center','medium',true,
+    );
+
+    const adjusted=(context.putImageData.mock.calls[0][0] as ImageData).data;
+    expect(adjusted[0]).toBeGreaterThan(100);
+    expect(context.getImageData).toHaveBeenCalledWith(96,144,1008,756);
+  });
 });
