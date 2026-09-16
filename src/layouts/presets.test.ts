@@ -29,16 +29,30 @@ describe('layouts',()=>{
     }));
   });
 
-  it('uses a portrait 4:5 photocard grid with separate footer space',()=>{
+  it('uses the specified 3024 by 4032 physical grid geometry',()=>{
     const grid=layouts.find(layout=>layout.id==='grid')!;
-    expect([grid.outputWidth,grid.outputHeight]).toEqual([1600,2000]);
+    expect([grid.outputWidth,grid.outputHeight]).toEqual([3024,4032]);
     expect(grid.slots).toHaveLength(4);
-    grid.slots.forEach(slot=>expect(getSlotAspectRatio(grid,slot)).toBeGreaterThanOrEqual(.75));
-    grid.slots.forEach(slot=>expect(getSlotAspectRatio(grid,slot)).toBeLessThanOrEqual(.85));
-    expect(getPhysicalSlotSize(grid,grid.slots[0])).toEqual({width:662.4,height:780});
-    expect(grid.slots[0].x+grid.slots[0].width).toBeLessThanOrEqual(grid.slots[1].x);
-    expect(grid.slots[0].y+grid.slots[0].height).toBeLessThanOrEqual(grid.slots[2].y);
-    expect(grid.slots[2].y+grid.slots[2].height).toBeLessThanOrEqual(grid.footerY);
-    expect(grid.footerHeight).toBeCloseTo(.14,6);
+    const expectedPhysicalSlots=[[216,168,1272,1590],[1536,168,1272,1590],[216,1830,1272,1590],[1536,1830,1272,1590]] as const;
+    grid.slots.forEach((slot,index)=>{
+      const [expectedX,expectedY,expectedWidth,expectedHeight]=expectedPhysicalSlots[index];
+      expect(getPhysicalSlotSize(grid,slot)).toEqual({width:expectedWidth,height:expectedHeight});
+      expect(slot.x*grid.outputWidth).toBeCloseTo(expectedX,6);
+      expect(slot.y*grid.outputHeight).toBeCloseTo(expectedY,6);
+      expect(getSlotAspectRatio(grid,slot)).toBeCloseTo(.8,6);
+      expect(slot.x+slot.width).toBeLessThanOrEqual(1);
+      expect(slot.y+slot.height).toBeLessThanOrEqual(1);
+    });
+    const [topLeft,topRight,bottomLeft,bottomRight]=grid.slots;
+    expect(grid.outputWidth-(topRight.x+topRight.width)*grid.outputWidth).toBeCloseTo(216,6);
+    expect((topRight.x-topLeft.x-topLeft.width)*grid.outputWidth).toBeCloseTo(48,6);
+    expect((bottomLeft.y-topLeft.y-topLeft.height)*grid.outputHeight).toBeCloseTo(72,6);
+    expect(topLeft.x+topLeft.width).toBeLessThanOrEqual(topRight.x);
+    expect(topLeft.y+topLeft.height).toBeLessThanOrEqual(bottomLeft.y);
+    expect(bottomLeft.x+bottomLeft.width).toBeLessThanOrEqual(bottomRight.x);
+    expect(topRight.y+topRight.height).toBeLessThanOrEqual(bottomRight.y);
+    expect(bottomLeft.y+bottomLeft.height).toBeLessThanOrEqual(grid.footerY);
+    expect(grid.footerY*grid.outputHeight).toBeCloseTo(3480,6);
+    expect(grid.footerHeight*grid.outputHeight).toBeCloseTo(552,6);
   });
 });

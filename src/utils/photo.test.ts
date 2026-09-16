@@ -100,4 +100,22 @@ describe('compose footer typography', () => {
       '기억의 문장 2026.09.15 감성사진관',
     );
   });
+
+  it('creates the Grid export canvas at exactly 3024 by 4032 pixels', async () => {
+    await compose(
+      [],
+      frameById('black'),
+      filterById('original'),
+      {},
+      true,
+      '기억의 문장',
+      new Date(2026, 8, 15),
+      layoutById('grid'),
+      typographyById('serif'),
+      'center',
+    );
+
+    expect(canvas.width).toBe(3024);
+    expect(canvas.height).toBe(4032);
+  });
 });

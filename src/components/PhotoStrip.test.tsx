@@ -7,11 +7,11 @@ import { layoutById } from '../layouts/presets';
 import { typographyById } from '../typography/presets';
 import { PhotoStrip } from './PhotoStrip';
 
-const preview = (showDate = true) => {
+const preview = (showDate = true, layout = layoutById('classic')) => {
   const props = {
     photos: [],
     frame: frameById('black'),
-    layout: layoutById('classic'),
+    layout,
     filter: filterById('original'),
     transforms: {},
     message: '기억의 문장',
@@ -36,6 +36,14 @@ describe('PhotoStrip footer typography', () => {
     expect(markup).toContain('--footer-message-size:');
     expect(markup).toContain('Noto Serif KR');
     expect(markup).toContain('text-align:right');
+  });
+
+  it('uses the shared Grid preset aspect ratio on the preview root', () => {
+    const markup = preview(true, layoutById('grid'));
+    const root = markup.match(/^<div class="strip layout-strip"[^>]*>/)?.[0];
+
+    expect(root).toBeDefined();
+    expect(root).toContain('aspect-ratio:0.75');
   });
 
   it('uses the selected text-size scale for the live footer message', () => {
