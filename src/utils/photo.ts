@@ -22,6 +22,6 @@ export async function compose(photos:Photo[],frame:Frame,filter:PhotoFilter,tran
   if(text)drawLine(text,footer.messageSize,typography.messageWeight,footer.messageY);
   if(showDate)drawLine(formattedDate,footer.dateSize,typography.dateWeight,footer.dateY);
   drawLine(brand,footer.brandSize,typography.dateWeight,footer.brandY);context.restore();
-  return new Promise<Blob>((resolve,reject)=>canvas.toBlob(blob=>blob?resolve(blob):reject(Error('합성 오류')),'image/png'));
+  return new Promise<Blob>((resolve,reject)=>canvas.toBlob(blob=>blob?resolve(blob):reject(Error('합성 오류')),'image/jpeg',.94));
 }
-export const name=()=>{const date=new Date(),pad=(value:number)=>String(value).padStart(2,'0');return `photo-studio_${date.getFullYear()}${pad(date.getMonth()+1)}${pad(date.getDate())}_${pad(date.getHours())}${pad(date.getMinutes())}${pad(date.getSeconds())}.png`};
+export const name=()=>{const date=new Date(),pad=(value:number)=>String(value).padStart(2,'0');return `photo-studio_${date.getFullYear()}${pad(date.getMonth()+1)}${pad(date.getDate())}_${pad(date.getHours())}${pad(date.getMinutes())}${pad(date.getSeconds())}.jpg`};

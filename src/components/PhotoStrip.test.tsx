@@ -43,7 +43,7 @@ describe('PhotoStrip footer typography', () => {
     const root = markup.match(/^<div class="strip layout-strip"[^>]*>/)?.[0];
 
     expect(root).toBeDefined();
-    expect(root).toContain('aspect-ratio:0.75');
+    expect(root).toContain(`aspect-ratio:${3304/4920}`);
   });
 
   it('uses the selected text-size scale for the live footer message', () => {

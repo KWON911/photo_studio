@@ -3,7 +3,7 @@ import { filterById } from '../filters/presets';
 import { frameById } from '../frames/presets';
 import { layoutById } from '../layouts/presets';
 import { typographyById } from '../typography/presets';
-import { compose } from './photo';
+import { compose, name } from './photo';
 
 describe('compose footer typography', () => {
   const fillText = vi.fn();
@@ -25,12 +25,13 @@ describe('compose footer typography', () => {
     width: 0,
     height: 0,
     getContext: vi.fn(() => context),
-    toBlob: vi.fn((callback: BlobCallback) => callback(new Blob(['png']))),
+    toBlob: vi.fn((callback: BlobCallback, type?: string) => callback(new Blob(['jpeg'], { type }))),
   };
 
   beforeEach(() => {
     fillText.mockClear();
     fontLoad.mockClear();
+    canvas.toBlob.mockClear();
     vi.stubGlobal('document', {
       fonts: { load: fontLoad },
       createElement: vi.fn(() => canvas),
@@ -101,7 +102,7 @@ describe('compose footer typography', () => {
     );
   });
 
-  it('creates the Grid export canvas at exactly 3024 by 4032 pixels', async () => {
+  it('creates the Grid export canvas at exactly 3304 by 4920 pixels', async () => {
     await compose(
       [],
       frameById('black'),
@@ -115,7 +116,21 @@ describe('compose footer typography', () => {
       'center',
     );
 
-    expect(canvas.width).toBe(3024);
-    expect(canvas.height).toBe(4032);
+    expect(canvas.width).toBe(3304);
+    expect(canvas.height).toBe(4920);
+  });
+
+  it('exports the composed result as a JPEG at quality 0.94', async () => {
+    const blob = await compose(
+      [], frameById('black'), filterById('original'), {}, true,
+      '기억의 문장', new Date(2026, 8, 15), layoutById('classic'), typographyById('serif'), 'center',
+    );
+
+    expect(blob.type).toBe('image/jpeg');
+    expect(canvas.toBlob).toHaveBeenCalledWith(expect.any(Function), 'image/jpeg', .94);
+  });
+
+  it('uses a jpg extension for downloaded results', () => {
+    expect(name()).toMatch(/\.jpg$/);
   });
 });
