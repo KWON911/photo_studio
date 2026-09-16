@@ -1,4 +1,4 @@
-import type { TextAlignment, TypographyId } from '../types/photo';
+import type { TextAlignment, TextSize, TypographyId } from '../types/photo';
 import { typography as typographyPresets } from '../typography/presets';
 
 const alignments: Array<{ id: TextAlignment; label: string; glyph: string }> = [
@@ -7,16 +7,26 @@ const alignments: Array<{ id: TextAlignment; label: string; glyph: string }> = [
   { id: 'right', label: '오른쪽 정렬', glyph: '≡' },
 ];
 
+const textSizes = [
+  { id: 'small', label: '작게' },
+  { id: 'medium', label: '기본' },
+  { id: 'large', label: '크게' },
+] as const;
+
 export function TypographySelector({
   typography,
   alignment,
+  textSize,
   onTypographyChange,
   onAlignmentChange,
+  onTextSizeChange,
 }: {
   typography: TypographyId;
   alignment: TextAlignment;
+  textSize: TextSize;
   onTypographyChange: (id: TypographyId) => void;
   onAlignmentChange: (id: TextAlignment) => void;
+  onTextSizeChange: (size: TextSize) => void;
 }) {
   return (
     <div className="typography-selector">
@@ -50,6 +60,22 @@ export function TypographySelector({
               onClick={() => onAlignmentChange(option.id)}
             >
               <span aria-hidden="true">{option.glyph}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+      <div className="typography-row">
+        <span id="text-size-label">글자 크기</span>
+        <div className="alignment-options" role="group" aria-labelledby="text-size-label">
+          {textSizes.map((size) => (
+            <button
+              key={size.id}
+              type="button"
+              className={size.id === textSize ? 'active' : ''}
+              aria-pressed={size.id === textSize}
+              onClick={() => onTextSizeChange(size.id)}
+            >
+              {size.label}
             </button>
           ))}
         </div>
