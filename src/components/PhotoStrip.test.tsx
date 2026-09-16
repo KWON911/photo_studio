@@ -38,6 +38,24 @@ describe('PhotoStrip footer typography', () => {
     expect(markup).toContain('text-align:right');
   });
 
+  it('uses the selected text-size scale for the live footer message', () => {
+    const props = {
+      photos: [],
+      frame: frameById('black'),
+      layout: layoutById('classic'),
+      filter: filterById('original'),
+      transforms: {},
+      message: '기억의 문장',
+      textSize: 'large',
+    } as ComponentProps<typeof PhotoStrip> & { textSize: 'large' };
+
+    const markup = renderToStaticMarkup(
+      createElement(PhotoStrip as ComponentType<typeof props>, props),
+    );
+
+    expect(markup).toContain('--footer-message-size:3.4000000000000004cqw');
+  });
+
   it('renders message, date, and brand as separate lines', () => {
     const markup = preview();
 

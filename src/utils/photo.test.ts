@@ -79,4 +79,25 @@ describe('compose footer typography', () => {
     expect(fillText.mock.calls.every(([, x]) => x === 96)).toBe(true);
     expect(fillText.mock.calls.every((call) => call.length === 3)).toBe(true);
   });
+
+  it('uses the selected text-size scale when loading the export font', async () => {
+    await compose(
+      [],
+      frameById('black'),
+      filterById('original'),
+      {},
+      true,
+      '기억의 문장',
+      new Date(2026, 8, 15),
+      layoutById('classic'),
+      typographyById('serif'),
+      'center',
+      'large',
+    );
+
+    expect(fontLoad).toHaveBeenCalledWith(
+      '600 40.800000000000004px "Noto Serif KR"',
+      '기억의 문장 2026.09.15 감성사진관',
+    );
+  });
 });
