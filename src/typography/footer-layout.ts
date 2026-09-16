@@ -52,8 +52,8 @@ export function getFooterTextLayout({
   const contentLeft = outputWidth * HORIZONTAL_PADDING_RATIO;
   const contentRight = outputWidth - contentLeft;
   const messageSize = outputWidth * messageScaleByTextSize[textSize];
-  const dateSize = outputWidth * 0.021;
-  const brandSize = outputWidth * 0.017;
+  const dateSize = messageSize * 0.7;
+  const brandSize = messageSize * (17 / 30);
   const gap = outputWidth * LINE_GAP_RATIO;
   const visibleSizes = [
     ...(hasMessage ? [messageSize] : []),

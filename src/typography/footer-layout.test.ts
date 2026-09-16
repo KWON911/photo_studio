@@ -53,6 +53,30 @@ describe('getFooterTextLayout', () => {
     expect(footer.dateSize).toBeLessThan(footer.messageSize);
   });
 
+  it.each([
+    ['small', true, 78, 54.6, 44.2],
+    ['medium', true, 90, 63, 51],
+    ['large', true, 102, 71.4, 57.8],
+    ['small', false, 78, 54.6, 44.2],
+    ['medium', false, 90, 63, 51],
+    ['large', false, 102, 71.4, 57.8],
+  ] as const)(
+    'scales %s date and brand proportionally when hasMessage is %s',
+    (textSize, hasMessage, messageSize, dateSize, brandSize) => {
+      const footer = getFooterTextLayout(options('center', {
+        outputWidth: 3000,
+        textSize,
+        hasMessage,
+      }));
+
+      expect(footer.messageSize).toBeCloseTo(messageSize, 5);
+      expect(footer.dateSize).toBeCloseTo(dateSize, 5);
+      expect(footer.brandSize).toBeCloseTo(brandSize, 5);
+      expect(footer.dateSize).toBeLessThan(footer.messageSize);
+      expect(footer.brandSize).toBeLessThan(footer.dateSize);
+    },
+  );
+
   it.each(['small', 'medium', 'large'] as const)(
     'keeps %s text inside the physical footer',
     (textSize) => {
