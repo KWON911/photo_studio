@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { layoutById } from '../layouts/presets';
-import type { TextAlignment } from '../types/photo';
+import { defaultTextSize, type TextAlignment } from '../types/photo';
 import { getFooterTextLayout } from './footer-layout';
 import { typographyById } from './presets';
 
@@ -16,10 +16,30 @@ const options = (
   hasMessage: true,
   hasDate: true,
   outputWidth: 1200,
+  textSize: defaultTextSize,
   ...overrides,
 });
 
 describe('getFooterTextLayout', () => {
+  it('uses medium as the default text size', () => {
+    expect(defaultTextSize).toBe('medium');
+  });
+
+  it.each([
+    ['small', 26],
+    ['medium', 30],
+    ['large', 34],
+  ] as const)('scales %s text from the output width', (textSize, expected) => {
+    const footer = getFooterTextLayout({
+      ...options('center'),
+      outputWidth: 1000,
+      textSize,
+    });
+
+    expect(footer.messageSize).toBe(expected);
+    expect(footer.dateSize).toBeLessThan(footer.messageSize);
+  });
+
   it.each([
     ['left', 'left'],
     ['center', 'center'],

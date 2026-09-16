@@ -1,6 +1,7 @@
 import type {
   LayoutPreset,
   TextAlignment,
+  TextSize,
   TypographyPreset,
 } from '../types/photo';
 
@@ -11,6 +12,7 @@ export type FooterTextLayoutOptions = {
   hasMessage: boolean;
   hasDate: boolean;
   outputWidth: number;
+  textSize: TextSize;
 };
 
 export type FooterTextLayout = {
@@ -29,6 +31,11 @@ export type FooterTextLayout = {
 const BASELINE_RATIO = 0.72;
 const HORIZONTAL_PADDING_RATIO = 0.08;
 const LINE_GAP_RATIO = 0.008;
+const messageScaleByTextSize: Record<TextSize, number> = {
+  small: 0.026,
+  medium: 0.03,
+  large: 0.034,
+};
 
 export function getFooterTextLayout({
   layout,
@@ -36,13 +43,14 @@ export function getFooterTextLayout({
   hasMessage,
   hasDate,
   outputWidth,
+  textSize,
 }: FooterTextLayoutOptions): FooterTextLayout {
   const outputHeight = outputWidth / layout.previewAspectRatio;
   const footerTop = layout.footerY * outputHeight;
   const footerHeight = layout.footerHeight * outputHeight;
   const contentLeft = outputWidth * HORIZONTAL_PADDING_RATIO;
   const contentRight = outputWidth - contentLeft;
-  const messageSize = outputWidth * 0.03;
+  const messageSize = outputWidth * messageScaleByTextSize[textSize];
   const dateSize = outputWidth * 0.021;
   const brandSize = outputWidth * 0.017;
   const gap = outputWidth * LINE_GAP_RATIO;
