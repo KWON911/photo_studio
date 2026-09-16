@@ -25,6 +25,19 @@ describe('getFooterTextLayout', () => {
     expect(defaultTextSize).toBe('medium');
   });
 
+  it('uses the medium layout scale when text size is omitted', () => {
+    const footer = getFooterTextLayout({
+      layout: classic,
+      typography: typographyById('modern'),
+      alignment: 'center',
+      hasMessage: true,
+      hasDate: true,
+      outputWidth: 1000,
+    });
+
+    expect(footer.messageSize).toBe(30);
+  });
+
   it.each([
     ['small', 26],
     ['medium', 30],
@@ -39,6 +52,23 @@ describe('getFooterTextLayout', () => {
     expect(footer.messageSize).toBe(expected);
     expect(footer.dateSize).toBeLessThan(footer.messageSize);
   });
+
+  it.each(['small', 'medium', 'large'] as const)(
+    'keeps %s text inside the physical footer',
+    (textSize) => {
+      const footer = getFooterTextLayout({
+        ...options('center'),
+        outputWidth: 1000,
+        textSize,
+      });
+      const outputHeight = 1000 / classic.previewAspectRatio;
+      const footerTop = classic.footerY * outputHeight;
+      const footerBottom = footerTop + classic.footerHeight * outputHeight;
+
+      expect(footer.messageY - footer.messageSize).toBeGreaterThanOrEqual(footerTop);
+      expect(footer.brandY).toBeLessThanOrEqual(footerBottom);
+    },
+  );
 
   it.each([
     ['left', 'left'],

@@ -1,8 +1,9 @@
-import type {
-  LayoutPreset,
-  TextAlignment,
-  TextSize,
-  TypographyPreset,
+import {
+  defaultTextSize,
+  type LayoutPreset,
+  type TextAlignment,
+  type TextSize,
+  type TypographyPreset,
 } from '../types/photo';
 
 export type FooterTextLayoutOptions = {
@@ -12,7 +13,7 @@ export type FooterTextLayoutOptions = {
   hasMessage: boolean;
   hasDate: boolean;
   outputWidth: number;
-  textSize: TextSize;
+  textSize?: TextSize;
 };
 
 export type FooterTextLayout = {
@@ -43,7 +44,7 @@ export function getFooterTextLayout({
   hasMessage,
   hasDate,
   outputWidth,
-  textSize,
+  textSize = defaultTextSize,
 }: FooterTextLayoutOptions): FooterTextLayout {
   const outputHeight = outputWidth / layout.previewAspectRatio;
   const footerTop = layout.footerY * outputHeight;
