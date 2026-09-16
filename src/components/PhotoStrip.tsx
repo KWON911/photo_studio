@@ -5,6 +5,7 @@ import{getLayoutAspectRatio,getSlotAspectRatio,layoutById}from'../layouts/preset
 import{getFooterTextLayout}from'../typography/footer-layout';
 import{defaultTypographyId,typographyById}from'../typography/presets';
 import{truncateMessage}from'../utils/result';
+import{FilteredPreviewImage}from'../filters/preview';
 
 type FooterStyle=CSSProperties&Record<`--footer-${string}`,string>;
 
@@ -16,7 +17,7 @@ export function PhotoStrip({photos,frame,layout=layoutById('classic'),filter,tra
     {photos.map((photo,index)=>{
       const slot=layout.slots[index],transform=clampTransformForCover(transforms[photo.id]??defaultTransform);
       return <button key={photo.id} className={active===photo.id?'editing':''} style={{left:`${slot.x*100}%`,top:`${slot.y*100}%`,width:`${slot.width*100}%`,height:`${slot.height*100}%`,aspectRatio:String(getSlotAspectRatio(layout,slot))}} onClick={()=>onSelect?.(photo.id)}>
-        <img src={photo.url} alt="선택 사진" style={{filter:filter.cssFilter,transform:`translate(${transform.offsetX*100}%,${transform.offsetY*100}%) scale(${transform.scale})`}}/>
+        <FilteredPreviewImage source={photo.url} filter={filter} maxEdge={720} alt="선택 사진" style={{transform:`translate(${transform.offsetX*100}%,${transform.offsetY*100}%) scale(${transform.scale})`}}/>
       </button>
     })}
     <footer className="strip-footer" style={footerStyle}>

@@ -20,6 +20,9 @@ describe('compose footer typography', () => {
     rect: vi.fn(),
     clip: vi.fn(),
     restore: vi.fn(),
+    drawImage: vi.fn(),
+    getImageData: vi.fn(() => ({data:new Uint8ClampedArray([100,100,100,255]),width:1,height:1} as ImageData)),
+    putImageData: vi.fn(),
   };
   const canvas = {
     width: 0,
@@ -32,6 +35,9 @@ describe('compose footer typography', () => {
     fillText.mockClear();
     fontLoad.mockClear();
     canvas.toBlob.mockClear();
+    context.drawImage.mockClear();
+    context.getImageData.mockClear();
+    context.putImageData.mockClear();
     vi.stubGlobal('document', {
       fonts: { load: fontLoad },
       createElement: vi.fn(() => canvas),
@@ -132,5 +138,22 @@ describe('compose footer typography', () => {
 
   it('uses a jpg extension for downloaded results', () => {
     expect(name()).toMatch(/\.jpg$/);
+  });
+
+  it('applies the selected shared preset to each drawn JPEG photo slot', async () => {
+    class TestImage {
+      width=100; height=100; onload:((event:Event)=>void)|null=null; onerror:((event:Event)=>void)|null=null;
+      set src(_value:string){this.onload?.(new Event('load'));}
+    }
+    vi.stubGlobal('Image',TestImage);
+
+    await compose(
+      [{id:'photo-1',blob:new Blob(['photo']),url:'blob:photo-1'}],frameById('black'),filterById('warm-film'),{},true,
+      '',new Date(2026,8,15),layoutById('classic'),typographyById('serif'),'center',
+    );
+
+    expect(context.getImageData).toHaveBeenCalledWith(96,144,1008,756);
+    const adjusted=(context.putImageData.mock.calls[0][0] as ImageData).data;
+    expect(adjusted[0]).toBeGreaterThan(adjusted[2]);
   });
 });
