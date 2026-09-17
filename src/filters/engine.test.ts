@@ -1,8 +1,14 @@
-import{describe,expect,it}from'vitest';import{applyFilterToImageData,applyPhotoAdjustmentsToImageData,applyPortraitRetouchToImageData}from'./engine';import{filterById}from'./presets';import{defaultSkinRetouch}from'./skin-retouch';
+import{describe,expect,it}from'vitest';import{applyFilterToImageData,applyPhotoAdjustmentsToImageData,applyPortraitRetouchToImageData,skinRetouchWeight}from'./engine';import{filterById}from'./presets';import{defaultSkinRetouch}from'./skin-retouch';
 
 const pixels=(values:number[],width=values.length/4)=>({data:new Uint8ClampedArray(values),width,height:values.length/4/width} as ImageData);
 
 describe('applyFilterToImageData',()=>{
+  it('uses a continuous bounded skin weight at the skin boundary',()=>{
+    const boundary=skinRetouchWeight(.50,.47,.43),skin=skinRetouchWeight(.62,.49,.40);
+    expect(boundary).toBeGreaterThan(0);
+    expect(boundary).toBeLessThan(1);
+    expect(skin).toBeGreaterThan(boundary);
+  });
   it('uses natural as the default skin retouch level',()=>{
     expect(defaultSkinRetouch).toBe('natural');
   });
