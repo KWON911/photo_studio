@@ -14,6 +14,8 @@ import type {
 } from "./types/photo";
 import { frames, frameById } from "./frames/presets";
 import { filterById } from "./filters/presets";
+import { defaultSkinRetouch } from "./filters/skin-retouch";
+import type { SkinRetouchLevel } from "./filters/skin-retouch";
 import { layoutById } from "./layouts/presets";
 import { defaultTypographyId, typographyById } from "./typography/presets";
 import { capture, compose, name } from "./utils/photo";
@@ -238,8 +240,8 @@ function Edit({
   setFrame,
   filter,
   setFilter,
-  portraitRetouch,
-  setPortraitRetouch,
+  skinRetouch,
+  setSkinRetouch,
   layout,
   setLayout,
   transforms,
@@ -261,8 +263,8 @@ function Edit({
   setFrame: (v: FrameId) => void;
   filter: FilterId;
   setFilter: (v: FilterId) => void;
-  portraitRetouch: boolean;
-  setPortraitRetouch: (value: boolean) => void;
+  skinRetouch: SkinRetouchLevel;
+  setSkinRetouch: (value: SkinRetouchLevel) => void;
   layout: LayoutId;
   setLayout: (v: LayoutId) => void;
   transforms: Record<string, PhotoTransform>;
@@ -295,7 +297,7 @@ function Edit({
         frame={frameById(frame)}
         layout={preset}
         filter={filterById(filter)}
-        portraitRetouch={portraitRetouch}
+        skinRetouch={skinRetouch}
         transforms={transforms}
         active={active}
         onSelect={setActive}
@@ -332,12 +334,11 @@ function Edit({
           />
         ) : tab === "filter" ? (
           <>
-            <FilterSelector photo={photo} value={filter} onChange={setFilter} portraitRetouch={portraitRetouch} />
-            <section className="portrait-retouch" aria-label="인물 보정">
-              <span>인물 보정</span>
+            <FilterSelector photo={photo} value={filter} onChange={setFilter} skinRetouch={skinRetouch} />
+            <section className="portrait-retouch" aria-label="피부 보정">
+              <span>피부 보정</span>
               <nav>
-                <button aria-pressed={!portraitRetouch} className={!portraitRetouch ? "active" : ""} onClick={() => setPortraitRetouch(false)}>OFF</button>
-                <button aria-pressed={portraitRetouch} className={portraitRetouch ? "active" : ""} onClick={() => setPortraitRetouch(true)}>ON</button>
+                {([['none','없음'],['natural','자연스럽게'],['clean','깨끗하게']] as const).map(([value,label])=><button key={value} aria-pressed={skinRetouch===value} className={skinRetouch===value ? "active" : ""} onClick={() => setSkinRetouch(value)}>{label}</button>)}
               </nav>
             </section>
           </>
@@ -402,7 +403,7 @@ export default function App() {
     [ids, setIds] = useState<string[]>([]),
     [frame, setFrame] = useState<FrameId>("white"),
     [filter, setFilter] = useState<FilterId>("original"),
-    [portraitRetouch, setPortraitRetouch] = useState(false),
+    [skinRetouch, setSkinRetouch] = useState<SkinRetouchLevel>(defaultSkinRetouch),
     [layout, setLayout] = useState<LayoutId>("classic"),
     [transforms, setTransforms] = useState<Record<string, PhotoTransform>>({}),
     [date, setDate] = useState(true),
@@ -432,7 +433,7 @@ export default function App() {
       typographyById(typography),
       alignment,
       textSize,
-      portraitRetouch,
+      skinRetouch,
     );
     if (url) URL.revokeObjectURL(url);
     setBlob(b);
@@ -509,8 +510,8 @@ export default function App() {
         setFrame={setFrame}
         filter={filter}
         setFilter={setFilter}
-        portraitRetouch={portraitRetouch}
-        setPortraitRetouch={setPortraitRetouch}
+        skinRetouch={skinRetouch}
+        setSkinRetouch={setSkinRetouch}
         layout={layout}
         setLayout={setLayout}
         transforms={transforms}
@@ -557,7 +558,7 @@ export default function App() {
             setTypography(defaultTypographyId);
             setAlignment(defaultTextAlignment);
             setTextSize(defaultTextSize);
-            setPortraitRetouch(false);
+            setSkinRetouch(defaultSkinRetouch);
             setIds([]);
             setScreen("landing");
           }}
