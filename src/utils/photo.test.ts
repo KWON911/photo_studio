@@ -167,7 +167,7 @@ describe('compose footer typography', () => {
 
     await compose(
       [{id:'photo-1',blob:new Blob(['photo']),url:'blob:photo-1'}],frameById('black'),filterById('original'),{},true,
-      '',new Date(2026,8,15),layoutById('classic'),typographyById('serif'),'center','medium','natural',
+      '',new Date(2026,8,15),layoutById('classic'),typographyById('serif'),'center','medium','on',
     );
 
     const adjusted=(context.putImageData.mock.calls[0][0] as ImageData).data;

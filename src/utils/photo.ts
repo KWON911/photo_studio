@@ -9,7 +9,7 @@ import{applyPhotoAdjustmentsToCanvas}from'../filters/engine';
 export async function capture(video:HTMLVideoElement,mirrored:boolean){const canvas=document.createElement('canvas');canvas.width=video.videoWidth||1280;canvas.height=video.videoHeight||720;const context=canvas.getContext('2d')!;if(mirrored){context.translate(canvas.width,0);context.scale(-1,1)}context.drawImage(video,0,0,canvas.width,canvas.height);return new Promise<Blob>((resolve,reject)=>canvas.toBlob(blob=>blob?resolve(blob):reject(Error('저장 오류')),'image/jpeg',.92))}
 const load=(url:string)=>new Promise<HTMLImageElement>((resolve,reject)=>{const image=new Image();image.onload=()=>resolve(image);image.onerror=reject;image.src=url});
 
-export async function compose(photos:Photo[],frame:Frame,filter:PhotoFilter,transforms:Record<string,PhotoTransform>,showDate:boolean,message='',date=new Date(),layout:LayoutPreset=layoutById('classic'),typography:TypographyPreset=typographyById(defaultTypographyId),alignment:TextAlignment='center',textSize:TextSize=defaultTextSize,skinRetouch:SkinRetouchLevel='natural'){
+export async function compose(photos:Photo[],frame:Frame,filter:PhotoFilter,transforms:Record<string,PhotoTransform>,showDate:boolean,message='',date=new Date(),layout:LayoutPreset=layoutById('classic'),typography:TypographyPreset=typographyById(defaultTypographyId),alignment:TextAlignment='center',textSize:TextSize=defaultTextSize,skinRetouch:SkinRetouchLevel='none'){
   const canvas=document.createElement('canvas');canvas.width=layout.outputWidth;canvas.height=layout.outputHeight;
   const context=canvas.getContext('2d')!;context.fillStyle=frame.background;context.fillRect(0,0,canvas.width,canvas.height);
   for(const[index,photo]of photos.entries()){

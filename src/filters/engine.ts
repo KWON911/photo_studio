@@ -9,9 +9,7 @@ export const skinRetouchWeight=(red:number,green:number,blue:number)=>{
 };
 const lipProtectionWeight=(red:number,green:number,blue:number)=>smoothstep(1.22,1.48,red/(green||.0001))*smoothstep(1.32,1.62,red/(blue||.0001))*smoothstep(.10,.32,red-blue);
 export const retouchLevelParameters={
-  natural:{smoothing:.10,toneUniformity:.035,midtoneLift:.028,neighbourDistance:.10},
-  clean:{smoothing:.30,toneUniformity:.09,midtoneLift:.075,neighbourDistance:.085},
-  booth:{smoothing:.58,toneUniformity:.13,midtoneLift:.03,neighbourDistance:.13},
+  on:{smoothing:.58,toneUniformity:.13,midtoneLift:.03,neighbourDistance:.13},
 }as const;
 
 export const applyFilterToImageData=(image:ImageData,filter:PhotoFilter)=>{
@@ -36,7 +34,7 @@ export const applyFilterToImageData=(image:ImageData,filter:PhotoFilter)=>{
   return image;
 };
 
-export const applyPortraitRetouchToImageData=(image:ImageData,level:Exclude<SkinRetouchLevel,'none'>='natural')=>{
+export const applyPortraitRetouchToImageData=(image:ImageData,level:Exclude<SkinRetouchLevel,'none'>='on')=>{
   const {data,width,height}=image,source=new Uint8ClampedArray(data);
   const {smoothing,toneUniformity,midtoneLift,neighbourDistance}=retouchLevelParameters[level];
   for(let index=0;index<data.length;index+=4){
@@ -58,7 +56,7 @@ export const applyPortraitRetouchToImageData=(image:ImageData,level:Exclude<Skin
   return image;
 };
 
-export const applyPhotoAdjustmentsToImageData=(image:ImageData,filter:PhotoFilter,skinRetouch:SkinRetouchLevel='natural')=>{
+export const applyPhotoAdjustmentsToImageData=(image:ImageData,filter:PhotoFilter,skinRetouch:SkinRetouchLevel='none')=>{
   if(skinRetouch!=='none')applyPortraitRetouchToImageData(image,skinRetouch);
   return applyFilterToImageData(image,filter);
 };
@@ -67,6 +65,6 @@ export const applyFilterToCanvas=(context:CanvasRenderingContext2D,filter:PhotoF
   const image=context.getImageData(x,y,width,height);context.putImageData(applyFilterToImageData(image,filter),x,y);
 };
 
-export const applyPhotoAdjustmentsToCanvas=(context:CanvasRenderingContext2D,filter:PhotoFilter,skinRetouch:SkinRetouchLevel='natural',x=0,y=0,width=context.canvas.width,height=context.canvas.height)=>{
+export const applyPhotoAdjustmentsToCanvas=(context:CanvasRenderingContext2D,filter:PhotoFilter,skinRetouch:SkinRetouchLevel='none',x=0,y=0,width=context.canvas.width,height=context.canvas.height)=>{
   const image=context.getImageData(x,y,width,height);context.putImageData(applyPhotoAdjustmentsToImageData(image,filter,skinRetouch),x,y);
 };

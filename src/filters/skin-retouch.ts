@@ -1,2 +1,2 @@
-export type SkinRetouchLevel='none'|'natural'|'clean'|'booth';
-export const defaultSkinRetouch:SkinRetouchLevel='natural';
+export type SkinRetouchLevel='none'|'on';
+export const defaultSkinRetouch:SkinRetouchLevel='none';
