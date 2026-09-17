@@ -8,6 +8,8 @@ describe('applyFilterToImageData',()=>{
     expect(retouchLevelParameters.clean.blemishContrast).toBeLessThan(retouchLevelParameters.natural.blemishContrast);
     expect(retouchLevelParameters.booth.neighbourDistance).toBeGreaterThan(.16);
     expect(retouchLevelParameters.booth.lowContrastCleanup).toBeGreaterThan(0);
+    expect(retouchLevelParameters.natural.baseStrength).toBeGreaterThan(0);
+    expect(retouchLevelParameters.booth.blemishBoost).toBeGreaterThan(retouchLevelParameters.clean.blemishBoost);
   });
   it('uses a continuous bounded skin weight at the skin boundary',()=>{
     const boundary=skinRetouchWeight(.50,.47,.43),skin=skinRetouchWeight(.62,.49,.40);
