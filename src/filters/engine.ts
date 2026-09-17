@@ -8,10 +8,10 @@ export const skinRetouchWeight=(red:number,green:number,blue:number)=>{
   return smoothstep(1.005,1.10,redGreen)*smoothstep(1.0,1.07,greenBlue)*smoothstep(.16,.28,tone)*(1-smoothstep(.72,.88,tone));
 };
 const lipProtectionWeight=(red:number,green:number,blue:number)=>smoothstep(1.22,1.48,red/(green||.0001))*smoothstep(1.32,1.62,red/(blue||.0001))*smoothstep(.10,.32,red-blue);
-const retouchParameters={
+export const retouchLevelParameters={
   natural:{smoothing:.10,toneUniformity:.035,midtoneLift:.028,neighbourDistance:.10},
   clean:{smoothing:.30,toneUniformity:.09,midtoneLift:.075,neighbourDistance:.085},
-  booth:{smoothing:.46,toneUniformity:.13,midtoneLift:.12,neighbourDistance:.065},
+  booth:{smoothing:.58,toneUniformity:.13,midtoneLift:.03,neighbourDistance:.13},
 }as const;
 
 export const applyFilterToImageData=(image:ImageData,filter:PhotoFilter)=>{
@@ -38,12 +38,12 @@ export const applyFilterToImageData=(image:ImageData,filter:PhotoFilter)=>{
 
 export const applyPortraitRetouchToImageData=(image:ImageData,level:Exclude<SkinRetouchLevel,'none'>='natural')=>{
   const {data,width,height}=image,source=new Uint8ClampedArray(data);
-  const {smoothing,toneUniformity,midtoneLift,neighbourDistance}=retouchParameters[level];
+  const {smoothing,toneUniformity,midtoneLift,neighbourDistance}=retouchLevelParameters[level];
   for(let index=0;index<data.length;index+=4){
     const pixel=index/4,x=pixel%width,y=Math.floor(pixel/width),originalRed=source[index]/255,originalGreen=source[index+1]/255,originalBlue=source[index+2]/255;
     const tone=luminance(originalRed,originalGreen,originalBlue),skinWeight=skinRetouchWeight(originalRed,originalGreen,originalBlue),finalWeight=skinWeight*(1-lipProtectionWeight(originalRed,originalGreen,originalBlue));
     if(finalWeight<=0)continue;
-    const midtone=clamp(1-Math.abs(tone-.52)*1.85),lift=midtone*midtoneLift*finalWeight,liftedTone=tone+lift;
+    const midtone=clamp(1-Math.abs(tone-.52)*1.85),lightingWeight=midtone*(1-smoothstep(.62,.82,tone)),lift=lightingWeight*midtoneLift*finalWeight,liftedTone=tone+lift;
     let red=originalRed+lift,green=originalGreen+lift,blue=originalBlue+lift;
     red+=((liftedTone-red)*toneUniformity*finalWeight);green+=((liftedTone-green)*toneUniformity*finalWeight);blue+=((liftedTone-blue)*toneUniformity*finalWeight);
     const neighbourPixels=[x>0?pixel-1:undefined,x<width-1?pixel+1:undefined,y>0?pixel-width:undefined,y<height-1?pixel+width:undefined].filter((neighbour):neighbour is number=>neighbour!==undefined);

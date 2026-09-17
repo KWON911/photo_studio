@@ -1,8 +1,15 @@
-import{describe,expect,it}from'vitest';import{applyFilterToImageData,applyPhotoAdjustmentsToImageData,applyPortraitRetouchToImageData,skinRetouchWeight}from'./engine';import{filterById}from'./presets';import{defaultSkinRetouch}from'./skin-retouch';
+import{describe,expect,it}from'vitest';import{applyFilterToImageData,applyPhotoAdjustmentsToImageData,applyPortraitRetouchToImageData,retouchLevelParameters,skinRetouchWeight}from'./engine';import{filterById}from'./presets';import{defaultSkinRetouch}from'./skin-retouch';
 
 const pixels=(values:number[],width=values.length/4)=>({data:new Uint8ClampedArray(values),width,height:values.length/4/width} as ImageData);
 
 describe('applyFilterToImageData',()=>{
+  it('gives booth stronger blemish cleanup while protecting detail',()=>{
+    expect(retouchLevelParameters.booth.smoothing).toBeGreaterThan(retouchLevelParameters.clean.smoothing);
+    expect(retouchLevelParameters.booth.neighbourDistance).toBeGreaterThan(retouchLevelParameters.clean.neighbourDistance);
+  });
+  it('keeps booth lighting below the whitening range',()=>{
+    expect(retouchLevelParameters.booth.midtoneLift).toBeLessThanOrEqual(.035);
+  });
   it('uses a continuous bounded skin weight at the skin boundary',()=>{
     const boundary=skinRetouchWeight(.50,.47,.43),skin=skinRetouchWeight(.62,.49,.40);
     expect(boundary).toBeGreaterThan(0);
@@ -58,12 +65,12 @@ describe('applyFilterToImageData',()=>{
     expect(clean.data[3]).toBe(137);
   });
 
-  it('makes booth retouch stronger than clean without changing alpha',()=>{
+  it('keeps booth lighting distinct from clean without changing alpha',()=>{
     const clean=pixels([120,100,86,137]);
     const booth=pixels([120,100,86,137]);
     applyPhotoAdjustmentsToImageData(clean,filterById('original'),'clean');
     applyPhotoAdjustmentsToImageData(booth,filterById('original'),'booth');
-    expect(booth.data[0]-clean.data[0]).toBeGreaterThanOrEqual(8);
+    expect([...booth.data.slice(0,3)]).not.toEqual([...clean.data.slice(0,3)]);
     expect(booth.data[3]).toBe(137);
   });
 
