@@ -48,7 +48,7 @@ describe('applyFilterToImageData',()=>{
     const natural=pixels([120,100,86,137]),clean=pixels([120,100,86,137]);
     applyPhotoAdjustmentsToImageData(natural,filterById('original'),'natural' as never);
     applyPhotoAdjustmentsToImageData(clean,filterById('original'),'clean' as never);
-    expect(clean.data[0]).toBeGreaterThan(natural.data[0]);
+    expect(clean.data[0]-natural.data[0]).toBeGreaterThanOrEqual(8);
     expect(clean.data[3]).toBe(137);
   });
 
@@ -57,7 +57,7 @@ describe('applyFilterToImageData',()=>{
     const booth=pixels([120,100,86,137]);
     applyPhotoAdjustmentsToImageData(clean,filterById('original'),'clean');
     applyPhotoAdjustmentsToImageData(booth,filterById('original'),'booth');
-    expect(booth.data[0]).toBeGreaterThan(clean.data[0]);
+    expect(booth.data[0]-clean.data[0]).toBeGreaterThanOrEqual(8);
     expect(booth.data[3]).toBe(137);
   });
 

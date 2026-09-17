@@ -3,9 +3,9 @@ import type{PhotoFilter}from'../types/photo';import type{SkinRetouchLevel}from'.
 const clamp=(value:number)=>Math.max(0,Math.min(1,value));
 const luminance=(red:number,green:number,blue:number)=>red*.2126+green*.7152+blue*.0722;
 const retouchParameters={
-  natural:{smoothing:.07,toneUniformity:.03,midtoneLift:.03,neighbourDistance:.10},
-  clean:{smoothing:.13,toneUniformity:.05,midtoneLift:.05,neighbourDistance:.09},
-  booth:{smoothing:.20,toneUniformity:.07,midtoneLift:.07,neighbourDistance:.075},
+  natural:{smoothing:.10,toneUniformity:.045,midtoneLift:.045,neighbourDistance:.10},
+  clean:{smoothing:.30,toneUniformity:.13,midtoneLift:.14,neighbourDistance:.085},
+  booth:{smoothing:.46,toneUniformity:.20,midtoneLift:.25,neighbourDistance:.065},
 }as const;
 
 export const applyFilterToImageData=(image:ImageData,filter:PhotoFilter)=>{
