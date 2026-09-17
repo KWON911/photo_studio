@@ -163,6 +163,7 @@ describe('compose footer typography', () => {
       set src(_value:string){this.onload?.(new Event('load'));}
     }
     vi.stubGlobal('Image',TestImage);
+    context.getImageData.mockReturnValueOnce({data:new Uint8ClampedArray([120,100,86,255]),width:1,height:1} as ImageData);
 
     await compose(
       [{id:'photo-1',blob:new Blob(['photo']),url:'blob:photo-1'}],frameById('black'),filterById('original'),{},true,
@@ -170,7 +171,7 @@ describe('compose footer typography', () => {
     );
 
     const adjusted=(context.putImageData.mock.calls[0][0] as ImageData).data;
-    expect(adjusted[0]).toBeGreaterThan(100);
+    expect(adjusted[0]).toBeGreaterThan(120);
     expect(context.getImageData).toHaveBeenCalledWith(96,144,1008,756);
   });
 });

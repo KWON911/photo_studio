@@ -1,8 +1,12 @@
-import{describe,expect,it}from'vitest';import{applyFilterToImageData,applyPhotoAdjustmentsToImageData,applyPortraitRetouchToImageData}from'./engine';import{filterById}from'./presets';
+import{describe,expect,it}from'vitest';import{applyFilterToImageData,applyPhotoAdjustmentsToImageData,applyPortraitRetouchToImageData}from'./engine';import{filterById}from'./presets';import{defaultSkinRetouch}from'./skin-retouch';
 
-const pixels=(values:number[])=>({data:new Uint8ClampedArray(values),width:values.length/4,height:1} as ImageData);
+const pixels=(values:number[],width=values.length/4)=>({data:new Uint8ClampedArray(values),width,height:values.length/4/width} as ImageData);
 
 describe('applyFilterToImageData',()=>{
+  it('uses natural as the default skin retouch level',()=>{
+    expect(defaultSkinRetouch).toBe('natural');
+  });
+
   it('leaves Original pixels unchanged',()=>{
     const image=pixels([40,120,220,255]);
     applyFilterToImageData(image,filterById('original'));
@@ -46,5 +50,46 @@ describe('applyFilterToImageData',()=>{
     applyPhotoAdjustmentsToImageData(clean,filterById('original'),'clean' as never);
     expect(clean.data[0]).toBeGreaterThan(natural.data[0]);
     expect(clean.data[3]).toBe(137);
+  });
+
+  it('makes booth retouch stronger than clean without changing alpha',()=>{
+    const clean=pixels([120,100,86,137]);
+    const booth=pixels([120,100,86,137]);
+    applyPhotoAdjustmentsToImageData(clean,filterById('original'),'clean');
+    applyPhotoAdjustmentsToImageData(booth,filterById('original'),'booth');
+    expect(booth.data[0]).toBeGreaterThan(clean.data[0]);
+    expect(booth.data[3]).toBe(137);
+  });
+
+  it('keeps Mono Booth output neutral while preserving alpha',()=>{
+    const image=pixels([120,100,86,137]);
+    applyPhotoAdjustmentsToImageData(image,filterById('mono'),'booth');
+    expect(image.data[0]).toBe(image.data[1]);
+    expect(image.data[1]).toBe(image.data[2]);
+    expect(image.data[3]).toBe(137);
+  });
+
+  it('does not blend high-contrast feature neighbours into skin',()=>{
+    const isolated=pixels([120,100,86,255]);
+    const highContrast=pixels([
+      20,20,20,255,20,20,20,255,20,20,20,255,
+      20,20,20,255,120,100,86,255,20,20,20,255,
+      20,20,20,255,20,20,20,255,20,20,20,255,
+    ],3);
+    applyPortraitRetouchToImageData(isolated,'booth');
+    applyPortraitRetouchToImageData(highContrast,'booth');
+    expect([...highContrast.data.slice(16,20)]).toEqual([...isolated.data]);
+  });
+
+  it('smooths skin when similar neighbours qualify',()=>{
+    const isolated=pixels([120,100,86,255]);
+    const similar=pixels([
+      115,96,83,255,115,96,83,255,115,96,83,255,
+      115,96,83,255,120,100,86,255,115,96,83,255,
+      115,96,83,255,115,96,83,255,115,96,83,255,
+    ],3);
+    applyPortraitRetouchToImageData(isolated,'booth');
+    applyPortraitRetouchToImageData(similar,'booth');
+    expect([...similar.data.slice(16,20)]).not.toEqual([...isolated.data]);
   });
 });

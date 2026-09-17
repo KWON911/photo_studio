@@ -338,7 +338,7 @@ function Edit({
             <section className="portrait-retouch" aria-label="피부 보정">
               <span>피부 보정</span>
               <nav>
-                {([['none','없음'],['natural','자연스럽게'],['clean','깨끗하게']] as const).map(([value,label])=><button key={value} aria-pressed={skinRetouch===value} className={skinRetouch===value ? "active" : ""} onClick={() => setSkinRetouch(value)}>{label}</button>)}
+                {([['none','없음'],['natural','자연스럽게'],['clean','깨끗하게'],['booth','부스']] as const).map(([value,label])=><button key={value} aria-pressed={skinRetouch===value} className={skinRetouch===value ? "active" : ""} onClick={() => setSkinRetouch(value)}>{label}</button>)}
               </nav>
             </section>
           </>
