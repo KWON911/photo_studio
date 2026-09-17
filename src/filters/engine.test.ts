@@ -1,14 +1,8 @@
-import{describe,expect,it}from'vitest';import{applyFilterToImageData,applyPhotoAdjustmentsToImageData,applyPortraitRetouchToImageData,retouchLevelParameters,skinRetouchWeight}from'./engine';import{filterById}from'./presets';import{defaultSkinRetouch}from'./skin-retouch';
+import{describe,expect,it}from'vitest';import{applyFilterToImageData,applyPhotoAdjustmentsToImageData,applyPortraitRetouchToImageData,skinRetouchWeight}from'./engine';import{filterById}from'./presets';import{defaultSkinRetouch}from'./skin-retouch';
 
 const pixels=(values:number[],width=values.length/4)=>({data:new Uint8ClampedArray(values),width,height:values.length/4/width} as ImageData);
 
 describe('applyFilterToImageData',()=>{
-  it('uses stricter detail protection for booth than clean',()=>{
-    expect(retouchLevelParameters.booth.detailEdge).toBeLessThan(retouchLevelParameters.clean.detailEdge);
-    expect(retouchLevelParameters.clean.blemishContrast).toBeLessThan(retouchLevelParameters.natural.blemishContrast);
-    expect(retouchLevelParameters.booth.neighbourDistance).toBeGreaterThan(.16);
-    expect(retouchLevelParameters.booth.lowContrastCleanup).toBeGreaterThan(0);
-  });
   it('uses a continuous bounded skin weight at the skin boundary',()=>{
     const boundary=skinRetouchWeight(.50,.47,.43),skin=skinRetouchWeight(.62,.49,.40);
     expect(boundary).toBeGreaterThan(0);
@@ -42,11 +36,11 @@ describe('applyFilterToImageData',()=>{
     expect(image.data[3]).toBe(91);
   });
 
-  it('preserves an isolated midtone portrait pixel colour and alpha',()=>{
+  it('brightens a midtone portrait pixel while preserving its alpha',()=>{
     const image=pixels([120,100,86,137]);
     applyPortraitRetouchToImageData(image);
-    expect(image.data[0]).toBe(120);
-    expect(image.data[1]).toBe(100);
+    expect(image.data[0]).toBeGreaterThan(120);
+    expect(image.data[1]).toBeGreaterThan(100);
     expect(image.data[3]).toBe(137);
   });
 
@@ -60,7 +54,7 @@ describe('applyFilterToImageData',()=>{
     const natural=pixels([120,100,86,137]),clean=pixels([120,100,86,137]);
     applyPhotoAdjustmentsToImageData(natural,filterById('original'),'natural' as never);
     applyPhotoAdjustmentsToImageData(clean,filterById('original'),'clean' as never);
-    expect([...clean.data]).toEqual([...natural.data]);
+    expect(clean.data[0]-natural.data[0]).toBeGreaterThanOrEqual(8);
     expect(clean.data[3]).toBe(137);
   });
 
@@ -69,7 +63,7 @@ describe('applyFilterToImageData',()=>{
     const booth=pixels([120,100,86,137]);
     applyPhotoAdjustmentsToImageData(clean,filterById('original'),'clean');
     applyPhotoAdjustmentsToImageData(booth,filterById('original'),'booth');
-    expect([...booth.data]).toEqual([...clean.data]);
+    expect(booth.data[0]-clean.data[0]).toBeGreaterThanOrEqual(8);
     expect(booth.data[3]).toBe(137);
   });
 
@@ -96,9 +90,9 @@ describe('applyFilterToImageData',()=>{
   it('smooths skin when similar neighbours qualify',()=>{
     const isolated=pixels([120,100,86,255]);
     const similar=pixels([
-      105,85,71,255,105,85,71,255,105,85,71,255,
-      105,85,71,255,120,100,86,255,105,85,71,255,
-      105,85,71,255,105,85,71,255,105,85,71,255,
+      115,96,83,255,115,96,83,255,115,96,83,255,
+      115,96,83,255,120,100,86,255,115,96,83,255,
+      115,96,83,255,115,96,83,255,115,96,83,255,
     ],3);
     applyPortraitRetouchToImageData(isolated,'booth');
     applyPortraitRetouchToImageData(similar,'booth');
@@ -109,11 +103,5 @@ describe('applyFilterToImageData',()=>{
     const lips=pixels([190,110,95,255]);
     applyPortraitRetouchToImageData(lips,'booth');
     expect([...lips.data]).toEqual([190,110,95,255]);
-  });
-
-  it('does not change an isolated skin pixel colour',()=>{
-    const skin=pixels([120,100,86,255]);
-    applyPortraitRetouchToImageData(skin,'booth');
-    expect([...skin.data]).toEqual([120,100,86,255]);
   });
 });

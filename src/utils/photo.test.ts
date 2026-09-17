@@ -171,7 +171,7 @@ describe('compose footer typography', () => {
     );
 
     const adjusted=(context.putImageData.mock.calls[0][0] as ImageData).data;
-    expect(adjusted[0]).toBe(120);
+    expect(adjusted[0]).toBeGreaterThan(120);
     expect(context.getImageData).toHaveBeenCalledWith(96,144,1008,756);
   });
 });

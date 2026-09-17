@@ -8,10 +8,10 @@ export const skinRetouchWeight=(red:number,green:number,blue:number)=>{
   return smoothstep(1.005,1.10,redGreen)*smoothstep(1.0,1.07,greenBlue)*smoothstep(.16,.28,tone)*(1-smoothstep(.72,.88,tone));
 };
 const lipProtectionWeight=(red:number,green:number,blue:number)=>smoothstep(1.22,1.48,red/(green||.0001))*smoothstep(1.32,1.62,red/(blue||.0001))*smoothstep(.10,.32,red-blue);
-export const retouchLevelParameters={
-  natural:{smoothing:.10,toneUniformity:0,midtoneLift:0,neighbourDistance:.10,blemishContrast:.040,detailEdge:.18,lowContrastCleanup:0},
-  clean:{smoothing:.24,toneUniformity:0,midtoneLift:0,neighbourDistance:.13,blemishContrast:.025,detailEdge:.16,lowContrastCleanup:0},
-  booth:{smoothing:.28,toneUniformity:0,midtoneLift:0,neighbourDistance:.19,blemishContrast:.009,detailEdge:.10,lowContrastCleanup:.16},
+const retouchParameters={
+  natural:{smoothing:.10,toneUniformity:.035,midtoneLift:.028,neighbourDistance:.10},
+  clean:{smoothing:.30,toneUniformity:.09,midtoneLift:.075,neighbourDistance:.085},
+  booth:{smoothing:.46,toneUniformity:.13,midtoneLift:.12,neighbourDistance:.065},
 }as const;
 
 export const applyFilterToImageData=(image:ImageData,filter:PhotoFilter)=>{
@@ -38,7 +38,7 @@ export const applyFilterToImageData=(image:ImageData,filter:PhotoFilter)=>{
 
 export const applyPortraitRetouchToImageData=(image:ImageData,level:Exclude<SkinRetouchLevel,'none'>='natural')=>{
   const {data,width,height}=image,source=new Uint8ClampedArray(data);
-  const {smoothing,toneUniformity,midtoneLift,neighbourDistance,blemishContrast,detailEdge,lowContrastCleanup}=retouchLevelParameters[level];
+  const {smoothing,toneUniformity,midtoneLift,neighbourDistance}=retouchParameters[level];
   for(let index=0;index<data.length;index+=4){
     const pixel=index/4,x=pixel%width,y=Math.floor(pixel/width),originalRed=source[index]/255,originalGreen=source[index+1]/255,originalBlue=source[index+2]/255;
     const tone=luminance(originalRed,originalGreen,originalBlue),skinWeight=skinRetouchWeight(originalRed,originalGreen,originalBlue),finalWeight=skinWeight*(1-lipProtectionWeight(originalRed,originalGreen,originalBlue));
@@ -50,11 +50,7 @@ export const applyPortraitRetouchToImageData=(image:ImageData,level:Exclude<Skin
     const similarNeighbours=neighbourPixels.filter(neighbour=>{const offset=neighbour*4;return(Math.abs(source[offset]/255-originalRed)+Math.abs(source[offset+1]/255-originalGreen)+Math.abs(source[offset+2]/255-originalBlue))/3<=neighbourDistance});
     if(similarNeighbours.length){
       const average=similarNeighbours.reduce((sum,neighbour)=>{const offset=neighbour*4;return[sum[0]+source[offset],sum[1]+source[offset+1],sum[2]+source[offset+2]]},[0,0,0]);
-      const divisor=similarNeighbours.length*255,averageRed=average[0]/divisor,averageGreen=average[1]/divisor,averageBlue=average[2]/divisor;
-      const localContrast=(Math.abs(averageRed-originalRed)+Math.abs(averageGreen-originalGreen)+Math.abs(averageBlue-originalBlue))/3;
-      const detailProtection=1-smoothstep(detailEdge,detailEdge*1.8,localContrast);
-      const blemishWeight=Math.max(smoothstep(blemishContrast,detailEdge,localContrast),lowContrastCleanup*smoothstep(.003,blemishContrast,localContrast));
-      const softness=smoothing*midtone*finalWeight*detailProtection*blemishWeight;
+      const softness=smoothing*midtone*finalWeight,divisor=similarNeighbours.length*255;
       red=red*(1-softness)+average[0]/divisor*softness;green=green*(1-softness)+average[1]/divisor*softness;blue=blue*(1-softness)+average[2]/divisor*softness;
     }
     data[index]=Math.round(clamp(red)*255);data[index+1]=Math.round(clamp(green)*255);data[index+2]=Math.round(clamp(blue)*255);
