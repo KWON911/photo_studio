@@ -10,6 +10,16 @@ describe('applyFilterToImageData',()=>{
     expect(retouchLevelParameters.booth.lowContrastCleanup).toBeGreaterThan(0);
     expect(retouchLevelParameters.natural.baseStrength).toBeGreaterThan(0);
     expect(retouchLevelParameters.booth.blemishBoost).toBeGreaterThan(retouchLevelParameters.clean.blemishBoost);
+    expect(retouchLevelParameters.booth.maxStrength).toBeGreaterThan(retouchLevelParameters.clean.maxStrength);
+  });
+
+  it('increases pixel difference at every retouch level',()=>{
+    const source=[105,85,71,255,105,85,71,255,105,85,71,255,105,85,71,255,120,100,86,255,105,85,71,255,105,85,71,255,105,85,71,255,105,85,71,255];
+    const render=(level:'none'|'natural'|'clean'|'booth')=>{const image=pixels(source,3);applyPhotoAdjustmentsToImageData(image,filterById('original'),level);return [...image.data]};
+    const mad=(left:number[],right:number[])=>left.reduce((sum,value,index)=>sum+Math.abs(value-right[index]),0)/left.length;
+    const none=render('none'),natural=render('natural'),clean=render('clean'),booth=render('booth');
+    expect(mad(none,natural)).toBeLessThan(mad(natural,clean));
+    expect(mad(natural,clean)).toBeLessThan(mad(clean,booth));
   });
   it('uses a continuous bounded skin weight at the skin boundary',()=>{
     const boundary=skinRetouchWeight(.50,.47,.43),skin=skinRetouchWeight(.62,.49,.40);
