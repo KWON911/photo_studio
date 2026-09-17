@@ -3,9 +3,9 @@ import type{PhotoFilter}from'../types/photo';import type{SkinRetouchLevel}from'.
 const clamp=(value:number)=>Math.max(0,Math.min(1,value));
 const luminance=(red:number,green:number,blue:number)=>red*.2126+green*.7152+blue*.0722;
 const retouchParameters={
-  natural:{smoothing:.10,toneUniformity:.045,midtoneLift:.045,neighbourDistance:.10},
-  clean:{smoothing:.30,toneUniformity:.13,midtoneLift:.14,neighbourDistance:.085},
-  booth:{smoothing:.46,toneUniformity:.20,midtoneLift:.25,neighbourDistance:.065},
+  natural:{smoothing:.10,toneUniformity:.035,midtoneLift:.028,neighbourDistance:.10},
+  clean:{smoothing:.30,toneUniformity:.09,midtoneLift:.075,neighbourDistance:.085},
+  booth:{smoothing:.46,toneUniformity:.13,midtoneLift:.12,neighbourDistance:.065},
 }as const;
 
 export const applyFilterToImageData=(image:ImageData,filter:PhotoFilter)=>{
@@ -36,7 +36,8 @@ export const applyPortraitRetouchToImageData=(image:ImageData,level:Exclude<Skin
   for(let index=0;index<data.length;index+=4){
     const pixel=index/4,x=pixel%width,y=Math.floor(pixel/width),originalRed=source[index]/255,originalGreen=source[index+1]/255,originalBlue=source[index+2]/255;
     const tone=luminance(originalRed,originalGreen,originalBlue),skinLike=originalRed>originalGreen*1.04&&originalGreen>originalBlue*1.015&&tone>.2&&tone<.82;
-    if(!skinLike)continue;
+    const lipLike=originalRed>originalGreen*1.35&&originalRed>originalBlue*1.5;
+    if(!skinLike||lipLike)continue;
     const midtone=clamp(1-Math.abs(tone-.52)*1.85),lift=midtone*midtoneLift,liftedTone=tone+lift;
     let red=originalRed+lift,green=originalGreen+lift,blue=originalBlue+lift;
     red+=((liftedTone-red)*toneUniformity);green+=((liftedTone-green)*toneUniformity);blue+=((liftedTone-blue)*toneUniformity);

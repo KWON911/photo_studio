@@ -92,4 +92,10 @@ describe('applyFilterToImageData',()=>{
     applyPortraitRetouchToImageData(similar,'booth');
     expect([...similar.data.slice(16,20)]).not.toEqual([...isolated.data]);
   });
+
+  it('preserves saturated lip colour during booth retouch',()=>{
+    const lips=pixels([190,110,95,255]);
+    applyPortraitRetouchToImageData(lips,'booth');
+    expect([...lips.data]).toEqual([190,110,95,255]);
+  });
 });
