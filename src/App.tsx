@@ -150,8 +150,7 @@ function Capture({
     manualPhotos = useRef<Photo[]>([]);
   useEffect(() => {
     void start();
-    return stop;
-  }, [start, stop]);
+  }, [start]);
   const advanceFeedback = () =>
     setFeedback((current) => nextCaptureFeedback(current));
   const captureOne = async (photos: Photo[]) => {

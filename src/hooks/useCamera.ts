@@ -1,1 +1,66 @@
-import {useCallback,useEffect,useRef,useState}from'react';import type{Settings}from'../types/photo';export function useCamera(s:Settings){const ref=useRef<HTMLVideoElement>(null),stream=useRef<MediaStream|null>(null),[error,setError]=useState<string|null>(null),[ready,setReady]=useState(false);const stop=useCallback(()=>{stream.current?.getTracks().forEach(t=>t.stop());stream.current=null;setReady(false)},[]);const start=useCallback(async()=>{stop();setError(null);try{const v=await navigator.mediaDevices.getUserMedia({video:{width:{ideal:1920},height:{ideal:1080},facingMode:{ideal:s.facingMode}},audio:false});stream.current=v;if(ref.current){ref.current.srcObject=v;await ref.current.play()}setReady(true)}catch{setError('카메라 접근 권한이 필요합니다.')}},[s.facingMode,stop]);useEffect(()=>()=>stop(),[stop]);return{ref,error,ready,start,stop}}
+import { useCallback, useEffect, useRef, useState } from 'react';
+import type { Settings } from '../types/photo';
+
+const stopStream = (mediaStream: MediaStream | null) => {
+  mediaStream?.getTracks().forEach((track) => track.stop());
+};
+
+export function useCamera(settings: Settings) {
+  const ref = useRef<HTMLVideoElement>(null);
+  const stream = useRef<MediaStream | null>(null);
+  const requestGeneration = useRef(0);
+  const [error, setError] = useState<string | null>(null);
+  const [ready, setReady] = useState(false);
+
+  const stop = useCallback(() => {
+    requestGeneration.current += 1;
+    stopStream(stream.current);
+    stream.current = null;
+    if (ref.current) ref.current.srcObject = null;
+    setReady(false);
+  }, []);
+
+  const start = useCallback(async () => {
+    const generation = requestGeneration.current + 1;
+    requestGeneration.current = generation;
+    stopStream(stream.current);
+    stream.current = null;
+    setReady(false);
+    setError(null);
+
+    try {
+      const nextStream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          width: { ideal: 1920 },
+          height: { ideal: 1080 },
+          facingMode: { ideal: settings.facingMode },
+        },
+        audio: false,
+      });
+
+      if (generation !== requestGeneration.current || !ref.current) {
+        stopStream(nextStream);
+        return;
+      }
+
+      stream.current = nextStream;
+      ref.current.srcObject = nextStream;
+      await ref.current.play();
+
+      if (generation !== requestGeneration.current) {
+        stopStream(nextStream);
+        if (ref.current?.srcObject === nextStream) ref.current.srcObject = null;
+        return;
+      }
+      setReady(true);
+    } catch {
+      if (generation === requestGeneration.current) {
+        setError('카메라 접근 권한이 필요합니다.');
+      }
+    }
+  }, [settings.facingMode]);
+
+  useEffect(() => () => stop(), [stop]);
+
+  return { ref, error, ready, start, stop };
+}
