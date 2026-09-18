@@ -40,6 +40,8 @@ import "./portrait-retouch.css";
 import { captureProgress, nextCaptureFeedback } from "./utils/capture-feedback";
 import type { CaptureFeedback } from "./utils/capture-feedback";
 import { CaptureCountdownOverlay } from "./components/CaptureCountdownOverlay";
+import { PwaInstallPrompt } from "./components/PwaInstallPrompt";
+import "./pwa.css";
 import { canCaptureManually, defaultCaptureMode, isCaptureComplete, nextCaptureCount } from "./utils/capture-session";
 const wait = (n: number) => new Promise((r) => setTimeout(r, n));
 function Landing({ go }: { go: () => void }) {
@@ -57,9 +59,12 @@ function Landing({ go }: { go: () => void }) {
           <br />네 장의 사진으로.
         </p>
       </section>
-      <button className="primary" onClick={go}>
-        시작하기
-      </button>
+      <div className="landing-actions">
+        <PwaInstallPrompt />
+        <button className="primary" onClick={go}>
+          시작하기
+        </button>
+      </div>
     </main>
   );
 }

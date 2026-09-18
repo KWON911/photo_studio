@@ -1,1 +1,37 @@
-<!doctype html><html lang="ko"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover"/><title>감성사진관</title></head><body><div id="root"></div><script type="module" src="/src/main.tsx"></script></body></html>
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#f5f3ef" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="감성사진관" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png" />
+    <title>감성사진관</title>
+    <style>
+      html,
+      body,
+      #root {
+        min-width: 320px;
+        min-height: 100%;
+        margin: 0;
+        background: #f5f3ef;
+      }
+
+      .app-boot {
+        min-height: 100dvh;
+        display: grid;
+        place-items: center;
+        color: #1e1e1e;
+        font: 600 16px/1.5 system-ui, sans-serif;
+        letter-spacing: -0.03em;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"><div class="app-boot">감성사진관</div></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

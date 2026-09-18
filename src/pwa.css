@@ -1,0 +1,40 @@
+.landing-actions {
+  display: grid;
+  gap: 10px;
+  width: 100%;
+}
+
+.pwa-install-button {
+  min-height: 48px;
+  padding: 0 20px;
+  border: 1px solid #c7c3bc;
+  border-radius: 4px;
+  background: transparent;
+  color: #1e1e1e;
+  font-weight: 600;
+  touch-action: manipulation;
+}
+
+.pwa-install-button:active:not(:disabled) {
+  background: #ebe8e2;
+}
+
+.pwa-install-button:disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+
+.pwa-install-hint {
+  margin: 0 8px 4px;
+  color: #6f6b65;
+  font-size: 13px;
+  line-height: 1.55;
+  text-align: center;
+}
+
+@media (display-mode: standalone) {
+  .pwa-install-button,
+  .pwa-install-hint {
+    display: none;
+  }
+}
