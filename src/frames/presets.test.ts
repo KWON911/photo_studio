@@ -7,4 +7,8 @@ describe('frameById', () => {
   });
 });
 
-it('keeps eight frame presets', async () => { const { frames } = await import('./presets'); expect(frames).toHaveLength(8); });
+it('includes editorial photo booth frame presets', async () => {
+  const { frames } = await import('./presets');
+  expect(frames).toHaveLength(11);
+  expect(frames.slice(0, 3).map((frame) => frame.decoration)).toEqual(['studio', 'film', 'archive']);
+});

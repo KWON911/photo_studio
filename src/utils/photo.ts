@@ -9,6 +9,42 @@ import{applyPhotoAdjustmentsToCanvas}from'../filters/engine';
 export async function capture(video:HTMLVideoElement,mirrored:boolean){const canvas=document.createElement('canvas');canvas.width=video.videoWidth||1280;canvas.height=video.videoHeight||720;const context=canvas.getContext('2d')!;if(mirrored){context.translate(canvas.width,0);context.scale(-1,1)}context.drawImage(video,0,0,canvas.width,canvas.height);return new Promise<Blob>((resolve,reject)=>canvas.toBlob(blob=>blob?resolve(blob):reject(Error('저장 오류')),'image/jpeg',.92))}
 const load=(url:string)=>new Promise<HTMLImageElement>((resolve,reject)=>{const image=new Image();image.onload=()=>resolve(image);image.onerror=reject;image.src=url});
 
+function drawFrameDecoration(context: CanvasRenderingContext2D, frame: Frame, layout: LayoutPreset) {
+  const decoration = frame.decoration;
+  if (!decoration) return;
+  const { outputWidth: width, outputHeight: height } = layout;
+  context.save();
+  context.strokeStyle = frame.color;
+  context.fillStyle = frame.color;
+  context.globalAlpha = decoration === 'film' ? 0.72 : 0.6;
+
+  if (decoration === 'film') {
+    const holeWidth = width * 0.022, holeHeight = width * 0.0145, step = width * 0.035;
+    for (const x of [width * 0.0165, width - width * 0.0165 - holeWidth]) {
+      for (let y = height * 0.027; y < height * 0.973; y += step) context.fillRect(x, y, holeWidth, holeHeight);
+    }
+    context.globalAlpha = 1;
+    context.font = `600 ${width * 0.021}px Inter, sans-serif`;
+    context.textAlign = 'center';
+    context.fillText('35MM · 04', width / 2, height * 0.027);
+  } else {
+    const inset = decoration === 'studio' ? width * 0.013 : width * 0.021;
+    context.lineWidth = Math.max(1, width * 0.001);
+    context.strokeRect(inset, inset, width - inset * 2, height - inset * 2);
+    if (decoration === 'archive') {
+      context.globalAlpha = 0.28;
+      context.strokeRect(inset + width * 0.004, inset + width * 0.004, width - (inset + width * 0.004) * 2, height - (inset + width * 0.004) * 2);
+    }
+    context.globalAlpha = 1;
+    context.font = `${decoration === 'archive' ? 500 : 600} ${width * (decoration === 'archive' ? 0.0225 : 0.0245)}px ${decoration === 'archive' ? 'Georgia, serif' : 'Inter, sans-serif'}`;
+    context.textAlign = 'left';
+    context.fillText(decoration === 'archive' ? 'ARCHIVE' : 'GAMSUNG PHOTO STUDIO', width * 0.058, height * 0.028);
+    context.textAlign = 'right';
+    context.fillText(decoration === 'archive' ? '—' : '04', width * 0.942, height * 0.028);
+  }
+  context.restore();
+}
+
 export async function compose(photos:Photo[],frame:Frame,filter:PhotoFilter,transforms:Record<string,PhotoTransform>,showDate:boolean,message='',date=new Date(),layout:LayoutPreset=layoutById('classic'),typography:TypographyPreset=typographyById(defaultTypographyId),alignment:TextAlignment='center',textSize:TextSize=defaultTextSize,skinRetouch:SkinRetouchLevel='none'){
   const canvas=document.createElement('canvas');canvas.width=layout.outputWidth;canvas.height=layout.outputHeight;
   const context=canvas.getContext('2d')!;context.fillStyle=frame.background;context.fillRect(0,0,canvas.width,canvas.height);
@@ -16,6 +52,7 @@ export async function compose(photos:Photo[],frame:Frame,filter:PhotoFilter,tran
     const slot=layout.slots[index],size={width:slot.width*canvas.width,height:slot.height*canvas.height},image=await load(photo.url),crop=cropRectForSlot(image.width,image.height,layout,slot,transforms[photo.id]??defaultTransform);
     const left=slot.x*canvas.width,top=slot.y*canvas.height;context.drawImage(image,crop.left,crop.top,crop.width,crop.height,left,top,size.width,size.height);applyPhotoAdjustmentsToCanvas(context,filter,skinRetouch,left,top,size.width,size.height);
   }
+  drawFrameDecoration(context,frame,layout);
   const text=truncateMessage(message),formattedDate=`${date.getFullYear()}.${String(date.getMonth()+1).padStart(2,'0')}.${String(date.getDate()).padStart(2,'0')}`,brand=frame.label??'감성사진관',footer=getFooterTextLayout({layout,typography,alignment,hasMessage:Boolean(text),hasDate:showDate,outputWidth:canvas.width,textSize}),fontFamily=await ensureTypographyLoaded(typography,footer.messageSize,[text,showDate?formattedDate:'',brand].filter(Boolean).join(' ')),contentWidth=footer.contentRight-footer.contentLeft;
   context.filter='none';context.fillStyle=frame.color;context.textAlign=footer.canvasAlign;context.textBaseline='alphabetic';context.letterSpacing=`${typography.letterSpacing}em`;
   context.save();context.beginPath();context.rect(footer.contentLeft,layout.footerY*canvas.height,contentWidth,layout.footerHeight*canvas.height);context.clip();

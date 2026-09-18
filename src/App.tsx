@@ -347,10 +347,11 @@ function Edit({
             {frames.map((item) => (
               <button
                 key={item.id}
+                aria-pressed={item.id === frame}
                 className={item.id === frame ? "active" : ""}
                 onClick={() => setFrame(item.id)}
               >
-                <i style={{ background: item.background }} />
+                <i className={`frame-swatch ${item.decoration ?? 'plain'}`} style={{ background: item.background, color: item.color }} />
                 {item.name}
               </button>
             ))}
