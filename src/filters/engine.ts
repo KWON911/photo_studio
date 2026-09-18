@@ -4,12 +4,13 @@ const clamp=(value:number)=>Math.max(0,Math.min(1,value));
 const luminance=(red:number,green:number,blue:number)=>red*.2126+green*.7152+blue*.0722;
 const smoothstep=(edge0:number,edge1:number,value:number)=>{const t=clamp((value-edge0)/(edge1-edge0));return t*t*(3-2*t)};
 export const skinRetouchWeight=(red:number,green:number,blue:number)=>{
-  const tone=luminance(red,green,blue),redGreen=red/(green||.0001),greenBlue=green/(blue||.0001);
-  return smoothstep(1.005,1.10,redGreen)*smoothstep(1.0,1.07,greenBlue)*smoothstep(.16,.28,tone)*(1-smoothstep(.72,.88,tone));
+  const tone=luminance(red,green,blue),redGreen=red/(green||.0001),greenBlue=green/(blue||.0001),chroma=Math.max(red,green,blue)-Math.min(red,green,blue);
+  return smoothstep(.98,1.06,redGreen)*smoothstep(.96,1.04,greenBlue)*smoothstep(.07,.22,tone)*(1-smoothstep(.82,.98,tone))*smoothstep(.018,.085,chroma);
 };
 const lipProtectionWeight=(red:number,green:number,blue:number)=>smoothstep(1.22,1.48,red/(green||.0001))*smoothstep(1.32,1.62,red/(blue||.0001))*smoothstep(.10,.32,red-blue);
 export const retouchLevelParameters={
-  on:{smoothing:.58,toneUniformity:.13,midtoneLift:.03,neighbourDistance:.13},
+  natural:{smoothing:.48,toneUniformity:.09,midtoneLift:.035,neighbourDistance:.16,radius:2,rosyTone:.006},
+  booth:{smoothing:.82,toneUniformity:.17,midtoneLift:.075,neighbourDistance:.22,radius:4,rosyTone:.014},
 }as const;
 
 export const applyFilterToImageData=(image:ImageData,filter:PhotoFilter)=>{
@@ -34,22 +35,29 @@ export const applyFilterToImageData=(image:ImageData,filter:PhotoFilter)=>{
   return image;
 };
 
-export const applyPortraitRetouchToImageData=(image:ImageData,level:Exclude<SkinRetouchLevel,'none'>='on')=>{
+export const applyPortraitRetouchToImageData=(image:ImageData,level:Exclude<SkinRetouchLevel,'none'>='booth')=>{
   const {data,width,height}=image,source=new Uint8ClampedArray(data);
-  const {smoothing,toneUniformity,midtoneLift,neighbourDistance}=retouchLevelParameters[level];
+  const {smoothing,toneUniformity,midtoneLift,neighbourDistance,radius,rosyTone}=retouchLevelParameters[level],sampleRadius=Math.min(radius,Math.max(1,Math.floor(Math.min(width,height)/2))),innerRadius=Math.max(1,Math.ceil(sampleRadius/2));
+  const sampleOffsets=[[-sampleRadius,0],[sampleRadius,0],[0,-sampleRadius],[0,sampleRadius],[-sampleRadius,-sampleRadius],[sampleRadius,-sampleRadius],[-sampleRadius,sampleRadius],[sampleRadius,sampleRadius],[-innerRadius,0],[innerRadius,0],[0,-innerRadius],[0,innerRadius]] as const;
   for(let index=0;index<data.length;index+=4){
     const pixel=index/4,x=pixel%width,y=Math.floor(pixel/width),originalRed=source[index]/255,originalGreen=source[index+1]/255,originalBlue=source[index+2]/255;
     const tone=luminance(originalRed,originalGreen,originalBlue),skinWeight=skinRetouchWeight(originalRed,originalGreen,originalBlue),finalWeight=skinWeight*(1-lipProtectionWeight(originalRed,originalGreen,originalBlue));
     if(finalWeight<=0)continue;
     const midtone=clamp(1-Math.abs(tone-.52)*1.85),lightingWeight=midtone*(1-smoothstep(.62,.82,tone)),lift=lightingWeight*midtoneLift*finalWeight,liftedTone=tone+lift;
-    let red=originalRed+lift,green=originalGreen+lift,blue=originalBlue+lift;
+    let red=originalRed+lift+rosyTone*lightingWeight*finalWeight,green=originalGreen+lift,blue=originalBlue+lift+rosyTone*.32*lightingWeight*finalWeight;
     red+=((liftedTone-red)*toneUniformity*finalWeight);green+=((liftedTone-green)*toneUniformity*finalWeight);blue+=((liftedTone-blue)*toneUniformity*finalWeight);
-    const neighbourPixels=[x>0?pixel-1:undefined,x<width-1?pixel+1:undefined,y>0?pixel-width:undefined,y<height-1?pixel+width:undefined].filter((neighbour):neighbour is number=>neighbour!==undefined);
-    const similarNeighbours=neighbourPixels.filter(neighbour=>{const offset=neighbour*4;return(Math.abs(source[offset]/255-originalRed)+Math.abs(source[offset+1]/255-originalGreen)+Math.abs(source[offset+2]/255-originalBlue))/3<=neighbourDistance});
-    if(similarNeighbours.length){
-      const average=similarNeighbours.reduce((sum,neighbour)=>{const offset=neighbour*4;return[sum[0]+source[offset],sum[1]+source[offset+1],sum[2]+source[offset+2]]},[0,0,0]);
-      const softness=smoothing*midtone*finalWeight,divisor=similarNeighbours.length*255;
-      red=red*(1-softness)+average[0]/divisor*softness;green=green*(1-softness)+average[1]/divisor*softness;blue=blue*(1-softness)+average[2]/divisor*softness;
+    let sampleRed=0,sampleGreen=0,sampleBlue=0,sampleWeight=0;
+    for(const[offsetX,offsetY]of sampleOffsets){
+      const sampleX=x+offsetX,sampleY=y+offsetY;
+      if(sampleX<0||sampleX>=width||sampleY<0||sampleY>=height)continue;
+      const offset=(sampleY*width+sampleX)*4,sampleR=source[offset]/255,sampleG=source[offset+1]/255,sampleB=source[offset+2]/255,difference=(Math.abs(sampleR-originalRed)+Math.abs(sampleG-originalGreen)+Math.abs(sampleB-originalBlue))/3;
+      if(difference>neighbourDistance)continue;
+      const weight=(1-difference/neighbourDistance)*(.3+.7*skinRetouchWeight(sampleR,sampleG,sampleB));
+      sampleRed+=sampleR*weight;sampleGreen+=sampleG*weight;sampleBlue+=sampleB*weight;sampleWeight+=weight;
+    }
+    if(sampleWeight>0){
+      const softness=smoothing*(.45+.55*midtone)*finalWeight;
+      red=red*(1-softness)+sampleRed/sampleWeight*softness;green=green*(1-softness)+sampleGreen/sampleWeight*softness;blue=blue*(1-softness)+sampleBlue/sampleWeight*softness;
     }
     data[index]=Math.round(clamp(red)*255);data[index+1]=Math.round(clamp(green)*255);data[index+2]=Math.round(clamp(blue)*255);
   }
