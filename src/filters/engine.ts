@@ -35,6 +35,20 @@ export const applyFilterToImageData=(image:ImageData,filter:PhotoFilter)=>{
   return image;
 };
 
+export const applyBoothLightingToImageData=(image:ImageData)=>{
+  const {data,width,height}=image,exposureMultiplier=2**.12;
+  for(let index=0;index<data.length;index+=4){
+    const pixel=index/4,x=pixel%width,y=Math.floor(pixel/width),red=data[index]/255,green=data[index+1]/255,blue=data[index+2]/255,tone=luminance(red,green,blue);
+    const centerX=(x+.5)/width-.5,centerY=(y+.5)/height-.5,radial=clamp(Math.hypot(centerX,centerY)*1.35),shadowFill=.048*(1-tone)**1.65,centerGlow=.024*(1-radial)**2*(1-tone),fill=shadowFill+centerGlow;
+    const illuminate=(channel:number)=>{
+      const lit=channel*exposureMultiplier+fill,highlightCeiling=channel+(1-channel)*.55;
+      return clamp(Math.min(lit,highlightCeiling));
+    };
+    data[index]=Math.round(illuminate(red)*255);data[index+1]=Math.round(illuminate(green)*255);data[index+2]=Math.round(illuminate(blue)*255);
+  }
+  return image;
+};
+
 export const applyPortraitRetouchToImageData=(image:ImageData,level:Exclude<SkinRetouchLevel,'none'>='booth')=>{
   const {data,width,height}=image,source=new Uint8ClampedArray(data);
   const {smoothing,toneUniformity,midtoneLift,neighbourDistance,radius,rosyTone}=retouchLevelParameters[level],sampleRadius=Math.min(radius,Math.max(1,Math.floor(Math.min(width,height)/2))),innerRadius=Math.max(1,Math.ceil(sampleRadius/2));
@@ -65,6 +79,7 @@ export const applyPortraitRetouchToImageData=(image:ImageData,level:Exclude<Skin
 };
 
 export const applyPhotoAdjustmentsToImageData=(image:ImageData,filter:PhotoFilter,skinRetouch:SkinRetouchLevel='none')=>{
+  if(skinRetouch==='booth')applyBoothLightingToImageData(image);
   if(skinRetouch!=='none')applyPortraitRetouchToImageData(image,skinRetouch);
   return applyFilterToImageData(image,filter);
 };
