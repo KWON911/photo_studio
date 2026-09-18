@@ -5,6 +5,22 @@ const stopStream = (mediaStream: MediaStream | null) => {
   mediaStream?.getTracks().forEach((track) => track.stop());
 };
 
+type FrameScheduler = (callback: FrameRequestCallback) => number;
+
+export const stabilizeCameraPreview = (
+  video: HTMLVideoElement,
+  scheduleFrame: FrameScheduler = requestAnimationFrame,
+) => new Promise<void>((resolve) => {
+  // WebKit can keep a portrait MediaStream in its intrinsic, letterboxed size.
+  // Toggling object-fit after playback forces a fresh media-layer layout.
+  video.style.objectFit = 'none';
+  scheduleFrame(() => {
+    void video.offsetWidth;
+    video.style.objectFit = 'cover';
+    scheduleFrame(() => resolve());
+  });
+});
+
 export function useCamera(settings: Settings) {
   const ref = useRef<HTMLVideoElement>(null);
   const stream = useRef<MediaStream | null>(null);
@@ -44,8 +60,10 @@ export function useCamera(settings: Settings) {
       }
 
       stream.current = nextStream;
+      ref.current.setAttribute('webkit-playsinline', 'true');
       ref.current.srcObject = nextStream;
       await ref.current.play();
+      await stabilizeCameraPreview(ref.current);
 
       if (generation !== requestGeneration.current) {
         stopStream(nextStream);

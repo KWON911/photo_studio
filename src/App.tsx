@@ -212,7 +212,7 @@ function Capture({
             autoPlay
             muted
             playsInline
-            className={s.facingMode === "user" ? "mirror" : ""}
+            className={`${s.facingMode === "user" ? "mirror " : ""}${ready ? "camera-ready" : ""}`.trim()}
           />
           {number !== null && <CaptureCountdownOverlay value={number} />}{" "}
           {feedback === "flash" && <div className="flash" aria-hidden="true" />}
