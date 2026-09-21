@@ -30,6 +30,7 @@ import {
   canSharePhoto,
   createPhotoFile,
   downloadBlob,
+  isIOSDevice,
   messageLimit,
   truncateMessage,
 } from "./utils/result";
@@ -490,7 +491,8 @@ function Result({
 }) {
   const [feedback, setFeedback] = useState(""),
     file = blob ? createPhotoFile(blob, name()) : null,
-    shareAvailable = !!file && canSharePhoto(file);
+    shareAvailable = !!file && canSharePhoto(file),
+    saveToPhotos = isIOSDevice() && shareAvailable;
   const share = async () => {
     if (!file || !shareAvailable) return;
     try {
@@ -500,8 +502,17 @@ function Result({
       if (!(error instanceof DOMException && error.name === "AbortError")) setFeedback("공유하지 못했습니다. 사진 저장을 이용해 주세요.");
     }
   };
-  const save = () => {
+  const save = async () => {
     if (!blob) return;
+    if (saveToPhotos && file) {
+      try {
+        await navigator.share({ files: [file] });
+        setFeedback("공유 메뉴에서 ‘이미지 저장’을 선택하면 사진 앱에 저장됩니다.");
+      } catch (error) {
+        if (!(error instanceof DOMException && error.name === "AbortError")) setFeedback("사진 앱에 저장할 수 없습니다. 공유 메뉴를 다시 열어 주세요.");
+      }
+      return;
+    }
     downloadBlob(blob, name());
     setFeedback("사진 저장을 시작했습니다.");
   };
@@ -513,10 +524,10 @@ function Result({
         {shareAvailable ? (
           <>
             <button type="button" className="primary" onClick={() => void share()}>공유하기</button>
-            <button type="button" onClick={save}>사진 저장</button>
+            <button type="button" onClick={() => void save()}>{saveToPhotos ? "사진에 저장" : "사진 저장"}</button>
           </>
         ) : (
-          <button type="button" className="primary" onClick={save}>사진 저장</button>
+          <button type="button" className="primary" onClick={() => void save()}>{saveToPhotos ? "사진에 저장" : "사진 저장"}</button>
         )}
         <button type="button" onClick={edit}>다시 편집</button>
         <button type="button" className="quiet-action" onClick={newShot}>새로 찍기</button>
