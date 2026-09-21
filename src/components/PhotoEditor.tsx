@@ -28,11 +28,13 @@ export function PhotoEditor({photo,layout,slot,value,onChange}:{photo:Photo;layo
     if(drag.current){const bounds=event.currentTarget.getBoundingClientRect();change(clampTransformForCover({...drag.current.value,offsetX:drag.current.value.offsetX+(event.clientX-drag.current.x)/bounds.width,offsetY:drag.current.value.offsetY+(event.clientY-drag.current.y)/bounds.height}))}
   };
   const wheel=(event:WheelEvent<HTMLDivElement>)=>{event.preventDefault();change(clampTransformForCover({...latestTransform.current,scale:clampScale(latestTransform.current.scale+(event.deltaY<0?.1:-.1))}))};
+  const nudge=(offsetX:number,offsetY:number)=>onChange(clampTransformForCover({...value,offsetX:value.offsetX+offsetX,offsetY:value.offsetY+offsetY}));
 
   return <div className="photo-editor">
-    <p>사진을 드래그하거나 두 손가락으로 확대하세요.</p>
-    <div className="zoom"><button onClick={()=>onChange(clampTransformForCover({...value,scale:clampScale(value.scale-.1)}))}>−</button><span>확대</span><button onClick={()=>onChange(clampTransformForCover({...value,scale:clampScale(value.scale+.1)}))}>＋</button><button className="reset" onClick={()=>onChange(defaultTransform)}>초기화</button></div>
-    <div className="edit-slot" style={{aspectRatio:String(getSlotAspectRatio(layout,slot))}} onPointerDown={startDrag} onPointerMove={move} onPointerUp={release} onPointerCancel={release} onWheel={wheel} onDoubleClick={()=>onChange(defaultTransform)}>
+    <p>사진을 드래그하거나 버튼으로 위치와 크기를 조절하세요.</p>
+    <div className="zoom"><button type="button" aria-label="축소" disabled={value.scale<=1} onClick={()=>onChange(clampTransformForCover({...value,scale:clampScale(value.scale-.1)}))}>−</button><span>확대</span><button type="button" aria-label="확대" disabled={value.scale>=3} onClick={()=>onChange(clampTransformForCover({...value,scale:clampScale(value.scale+.1)}))}>＋</button><button type="button" className="reset" onClick={()=>onChange(defaultTransform)}>초기화</button></div>
+    <div className="position-controls" role="group" aria-label="사진 위치 미세 조정"><span>위치</span><div><button type="button" aria-label="사진을 위로 이동" onClick={()=>nudge(0,-.03)}>위</button><button type="button" aria-label="사진을 왼쪽으로 이동" onClick={()=>nudge(-.03,0)}>왼쪽</button><button type="button" aria-label="사진을 오른쪽으로 이동" onClick={()=>nudge(.03,0)}>오른쪽</button><button type="button" aria-label="사진을 아래로 이동" onClick={()=>nudge(0,.03)}>아래</button></div></div>
+    <div className="edit-slot" role="group" aria-label="사진 위치 조절 영역" tabIndex={0} style={{aspectRatio:String(getSlotAspectRatio(layout,slot))}} onPointerDown={startDrag} onPointerMove={move} onPointerUp={release} onPointerCancel={release} onWheel={wheel} onDoubleClick={()=>onChange(defaultTransform)}>
       <img src={photo.url} alt="편집 중인 사진" style={{transform:`translate(${value.offsetX*100}%,${value.offsetY*100}%) scale(${value.scale})`}}/>
     </div>
   </div>;
